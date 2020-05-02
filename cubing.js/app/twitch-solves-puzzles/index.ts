@@ -18,7 +18,7 @@ class TwistySolvesPuzzles {
 		parseInt(new URL(location.href).searchParams.get('voteInterval')) || 10
 	public COOLDOWN_INTERVAL =
 		parseInt(new URL(location.href).searchParams.get('cooldownInterval')) || 10
-	public MAX_MESSAGES = 10
+	public MAX_MESSAGES = 9
 	public state: string = 'none'
 	private countdown: any
 	private voteTally: any = {}

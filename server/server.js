@@ -1,7 +1,7 @@
 const config = require('../config')
 const WebSocket = require('ws')
 const tmi = require('tmi.js')
-const { moves333 } = require('consts')
+const { moves333 } = require('./consts')
 const { Scrambow } = require('scrambow')
 
 class TwitchSolvesServer {
