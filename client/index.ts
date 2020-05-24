@@ -1,8 +1,12 @@
-import { Twisty } from 'cubing/src/twisty'
-import { ProxyEvent, ProxyReceiver, ProxySender } from './websocket-proxy'
-import { Puzzles } from 'cubing/src/kpuzzle'
-import { BlockMove } from 'cubing/src/alg/algorithm/block-move'
-import { Sequence } from 'cubing/src/alg'
+import { Twisty } from '../../src/twisty'
+import {
+	ProxyEvent,
+	ProxyReceiver,
+	ProxySender,
+} from '../vr/proxy/websocket-proxy'
+import { Puzzles } from '../../src/kpuzzle'
+import { BlockMove } from '../../src/alg/algorithm/block-move'
+import { Sequence } from '../../src/alg'
 
 class TwistySolvesPuzzles {
 	public proxyReceiver: ProxyReceiver
@@ -10,11 +14,13 @@ class TwistySolvesPuzzles {
 	private twisty: Twisty
 	public votes: { move: string; username: string }[] = []
 	public moves: BlockMove[] = []
-	public VOTE_INTERVAL =
-		parseInt(new URL(location.href).searchParams.get('voteInterval')) || 10
-	public COOLDOWN_INTERVAL =
-		parseInt(new URL(location.href).searchParams.get('cooldownInterval')) || 10
-	public MAX_MESSAGES = 10
+	public VOTE_INTERVAL = parseInt(
+		new URL(location.href).searchParams.get('voteInterval') || '10'
+	)
+	public COOLDOWN_INTERVAL = parseInt(
+		new URL(location.href).searchParams.get('cooldownInterval') || '10'
+	)
+	public MAX_MESSAGES = 9
 	public state: string = 'none'
 	private countdown: any
 	private voteTally: any = {}
@@ -136,27 +142,15 @@ class TwistySolvesPuzzles {
 				return { family: 'R', amount: 1 }
 		}
 	}
-	public moves: BlockMove[] = []
 
 	constructor() {
-		this.twisty = new Twisty(document.querySelector('#target-twisty')!, {
-			alg: new Sequence([]),
-			puzzle: Puzzles['333'],
-			playerConfig: {
-				visualizationFormat: '3D',
-				experimentalShowControls: false,
-				experimentalCube3DViewConfig: {
-					experimentalShowBackView: true,
-				},
-			},
-		})
 		this.proxyReceiver = new ProxyReceiver(this.onMove.bind(this))
 		this.handleReset()
 		this.changeState = this.changeState.bind(this)
 		this.startCountDown = this.startCountDown.bind(this)
 	}
 
-	public changeState(newState: string) {
+	public changeState = (newState: string) => {
 		console.log(newState)
 		this.proxySender.websocket.send(
 			JSON.stringify({ event: 'state', data: { newState: newState } })
@@ -168,22 +162,41 @@ class TwistySolvesPuzzles {
 		if (newState === 'VOTING' || newState === 'COOLDOWN') {
 			const timeleft =
 				newState === 'VOTING' ? this.VOTE_INTERVAL : this.COOLDOWN_INTERVAL
-			document.getElementById('progress-header')?.innerHTML = this.state
-			document.getElementById('progress-bar').value = timeleft.toString()
-			document.getElementById('progress-bar').max = timeleft.toString()
+			;(document.getElementById(
+				'progress-bar'
+			) as HTMLInputElement).value = timeleft.toString()
+			document.getElementById('progress-header')!.innerHTML = this.state
+			;(document.getElementById(
+				'progress-bar'
+			) as HTMLInputElement).max = timeleft.toString()
 			this.startCountDown(timeleft, 1000, this.changeState)
 		} else {
 			clearTimeout(this.countdown)
-			document.getElementById('progress-header')?.innerHTML = this.state
+			document.getElementById('progress-header')!.innerHTML = this.state
 			switch (newState) {
 				case 'STOP':
 					break
 				case 'RESET':
 					this.handleReset()
+					this.performScramble()
 				case 'PAUSE':
 					break
 			}
 		}
+	}
+	private newTwisty = (puzzle: string) => {
+		console.log(puzzle)
+		this.twisty = new Twisty(document.querySelector('#target-twisty')!, {
+			alg: new Sequence([]),
+			puzzle: Puzzles[puzzle],
+			playerConfig: {
+				visualizationFormat: '3D',
+				experimentalShowControls: false,
+				experimentalCube3DViewConfig: {
+					experimentalShowBackView: true,
+				},
+			},
+		})
 	}
 
 	private performMove = () => {
@@ -205,7 +218,7 @@ class TwistySolvesPuzzles {
 			this.moves.push(moveToApply)
 			document.getElementById(
 				'total-moves'
-			)?.innerText = `${this.moves.length} Moves`
+			)!.innerText = `${this.moves.length} Moves`
 			// remove prior messages
 			let elements = document.getElementsByClassName('message-box-item')
 			for (let i = 0; i < elements.length; i++) {
@@ -225,21 +238,22 @@ class TwistySolvesPuzzles {
 	private handleReset = () => {
 		this.voteTally = {}
 		this.moves = []
-		let scrambleMoves = []
 		let elements = document.getElementsByClassName('message-box-item')
 		for (let i = 0; i < elements.length; i++) {
 			elements.item(i)?.remove()
 		}
-		this.performScramble()
 	}
-	private startCountDown(i, p, f) {
+	private startCountDown(i: number, p: number, f: (state: string) => void) {
+		// I really don't know how to do typscript types for this
 		var pause = p
 		var fn = f
-		var countDownObj = document.getElementById('progress-bar')
+		var countDownObj = document.getElementById(
+			'progress-bar'
+		) as HTMLInputElement
 
-		countDownObj.count = (i) => {
+		countDownObj.count = (i: number) => {
 			//  write out count
-			countDownObj.value = i
+			countDownObj.value = i.toString()
 			if (i == 0) {
 				if (this.countdown) {
 					clearTimeout(this.countdown)
@@ -249,7 +263,7 @@ class TwistySolvesPuzzles {
 				return
 			}
 			this.countdown = setTimeout(function () {
-				countDownObj.count(i - 1)
+				countDownObj!.count(i - 1)
 			}, pause)
 		}
 		//  set it going
@@ -257,23 +271,23 @@ class TwistySolvesPuzzles {
 	}
 
 	private onMove(e: ProxyEvent | any): void {
-		console.log(e)
-		if (e.event === 'move') {
-			// this.twisty.experimentalAddMove(e.data.latestMove)
-			this.addVote(e.vote)
-		} else if (e.event === 'START') {
-			this.scramble.scrambleString = e.scramble
-			this.performScramble()
-			this.changeState('VOTING')
-		} else if (e.event === 'STOP') {
-			this.changeState('STOP')
-		} else if (e.event === 'RESET') {
-			this.scramble.scrambleString = e.scramble
-			this.performScramble()
-
-			this.changeState('RESET')
-		} else if (e.event === 'PAUSE') {
-			this.changeState('PAUSE')
+		console.log(e.event)
+		switch (e.event) {
+			case 'START':
+				this.newTwisty(e.puzzleId)
+				this.scramble.scrambleString = e.scramble
+				this.performScramble()
+				this.changeState('VOTING')
+				return
+			case 'move':
+				this.addVote(e.vote)
+				return
+			case 'RESET':
+				this.scramble.scrambleString = e.scramble
+				this.performScramble()
+				this.changeState('RESET')
+			default:
+				this.changeState(e.event)
 		}
 	}
 	private addVote = (vote: { move: string; username: string }): void => {

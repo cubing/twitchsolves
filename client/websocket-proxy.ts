@@ -1,7 +1,6 @@
 import { MoveEvent } from 'cubing/src/bluetooth'
 import { OrientationEvent } from 'cubing/src/bluetooth/bluetooth-puzzle'
-const socketOrigin =
-	new URL(window.location.href).searchParams.get('socketOrigin') || null
+import { socketOrigin } from '../config'
 
 export interface ProxyMoveEvent {
 	event: 'move'
