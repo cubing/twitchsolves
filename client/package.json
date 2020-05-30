@@ -41,5 +41,8 @@
 	},
 	"scripts": {
 		"dev": "parcel serve --no-autoinstall index.html --open --out-dir dist/parcel"
-	}
+	},
+	"browserslist": [
+		"> 5%"
+	]
 }
