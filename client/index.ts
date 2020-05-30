@@ -1,16 +1,34 @@
-import { Twisty } from '../../src/twisty'
+import { Twisty } from 'cubing/twisty'
 import {
 	ProxyEvent,
-	ProxyReceiver,
-	ProxySender,
-} from '../vr/proxy/websocket-proxy'
-import { Puzzles } from '../../src/kpuzzle'
-import { BlockMove } from '../../src/alg/algorithm/block-move'
-import { Sequence } from '../../src/alg'
+	WebSocketProxyReceiver,
+	WebSocketProxySender,
+} from 'cubing/stream'
+import { Puzzles } from 'cubing/kpuzzle'
+import { BlockMove, Sequence } from 'cubing/alg'
+import { MoveEvent } from 'cubing/dist/esm/src/bluetooth';
+
+class TwitchSolverProxySender extends WebSocketProxySender {
+  sendStateEvent(newState: string): void {
+		this.websocket.send(
+			JSON.stringify({ event: 'state', data: { newState: newState } })
+		)
+  }
+}
+
+class CallbackProxyReceiver extends WebSocketProxyReceiver {
+  constructor(url: string, private callback: (e: MoveEvent) => void) {
+    super(url);
+  }
+
+  onProxyEvent(e: MoveEvent): void {
+    this.callback(e);
+  }
+}
 
 class TwistySolvesPuzzles {
-	public proxyReceiver: ProxyReceiver
-	public proxySender: ProxySender = new ProxySender()
+	public proxyReceiver: WebSocketProxyReceiver
+	public proxySender: TwitchSolverProxySender
 	private twisty: Twisty
 	public votes: { move: string; username: string }[] = []
 	public moves: BlockMove[] = []
@@ -144,7 +162,8 @@ class TwistySolvesPuzzles {
 	}
 
 	constructor() {
-		this.proxyReceiver = new ProxyReceiver(this.onMove.bind(this))
+		this.proxySender = new TwitchSolverProxySender(this.proxyURL("/register-sender"));
+		this.proxyReceiver = new CallbackProxyReceiver(this.proxyURL("/register-receiver"), this.onMove.bind(this))
 		this.handleReset()
 		this.changeState = this.changeState.bind(this)
 		this.startCountDown = this.startCountDown.bind(this)
@@ -152,9 +171,7 @@ class TwistySolvesPuzzles {
 
 	public changeState = (newState: string) => {
 		console.log(newState)
-		this.proxySender.websocket.send(
-			JSON.stringify({ event: 'state', data: { newState: newState } })
-		)
+		this.proxySender.sendStateEvent(newState)
 		this.state = newState
 		if (newState === 'COOLDOWN') {
 			this.performMove()
@@ -184,6 +201,14 @@ class TwistySolvesPuzzles {
 			}
 		}
 	}
+
+	private proxyURL(pathname): string {
+		const socketOrigin = new URL(location.href).searchParams.get("socketOrigin");
+		const url = new URL(socketOrigin);
+		url.pathname = pathname;
+		return url.toString();
+	}
+
 	private newTwisty = (puzzle: string) => {
 		console.log(puzzle)
 		this.twisty = new Twisty(document.querySelector('#target-twisty')!, {
