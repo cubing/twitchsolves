@@ -6,7 +6,7 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"cubing": "^0.10.4",
+		"cubing": "^0.10.5",
 		"scrambow": "^1.3.0",
 		"three": "^0.111.0"
 	},
@@ -41,5 +41,8 @@
 	},
 	"scripts": {
 		"dev": "parcel serve --no-autoinstall index.html --open --out-dir dist/parcel"
-	}
+	},
+	"browserslist": [
+		"> 5%"
+	]
 }
