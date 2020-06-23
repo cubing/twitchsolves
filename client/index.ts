@@ -6,24 +6,24 @@ import {
 } from 'cubing/stream'
 import { Puzzles } from 'cubing/kpuzzle'
 import { BlockMove, Sequence } from 'cubing/alg'
-import { MoveEvent } from 'cubing/dist/esm/src/bluetooth';
+import { MoveEvent } from 'cubing/dist/esm/src/bluetooth'
 
 class TwitchSolverProxySender extends WebSocketProxySender {
-  sendStateEvent(newState: string): void {
+	sendStateEvent(newState: string): void {
 		this.websocket.send(
 			JSON.stringify({ event: 'state', data: { newState: newState } })
 		)
-  }
+	}
 }
 
 class CallbackProxyReceiver extends WebSocketProxyReceiver {
-  constructor(url: string, private callback: (e: MoveEvent) => void) {
-    super(url);
-  }
+	constructor(url: string, private callback: (e: MoveEvent) => void) {
+		super(url)
+	}
 
-  onProxyEvent(e: MoveEvent): void {
-    this.callback(e);
-  }
+	onProxyEvent(e: MoveEvent): void {
+		this.callback(e)
+	}
 }
 
 class TwistySolvesPuzzles {
@@ -160,10 +160,16 @@ class TwistySolvesPuzzles {
 				return { family: 'R', amount: 1 }
 		}
 	}
+	public mode: string = 'democracy'
 
 	constructor() {
-		this.proxySender = new TwitchSolverProxySender(this.proxyURL("/register-sender"));
-		this.proxyReceiver = new CallbackProxyReceiver(this.proxyURL("/register-receiver"), this.onMove.bind(this))
+		this.proxySender = new TwitchSolverProxySender(
+			this.proxyURL('/register-sender')
+		)
+		this.proxyReceiver = new CallbackProxyReceiver(
+			this.proxyURL('/register-receiver'),
+			this.onMove.bind(this)
+		)
 		this.handleReset()
 		this.changeState = this.changeState.bind(this)
 		this.startCountDown = this.startCountDown.bind(this)
@@ -202,11 +208,11 @@ class TwistySolvesPuzzles {
 		}
 	}
 
-	private proxyURL(pathname): string {
-		const socketOrigin = new URL(location.href).searchParams.get("socketOrigin");
-		const url = new URL(socketOrigin);
-		url.pathname = pathname;
-		return url.toString();
+	private proxyURL(pathname: string): string {
+		const socketOrigin = new URL(location.href).searchParams.get('socketOrigin')
+		const url = new URL(socketOrigin)
+		url.pathname = pathname
+		return url.toString()
 	}
 
 	private newTwisty = (puzzle: string) => {
@@ -227,17 +233,29 @@ class TwistySolvesPuzzles {
 	private performMove = () => {
 		if (Object.keys(this.voteTally).length > 0) {
 			// move with highest vote
-			const move = Object.keys(this.voteTally).reduce((a, b) =>
-				this.voteTally[a] > this.voteTally[b] ? a : b
-			)
-			console.log(move)
-			const blockMove = this.moves333(move)
-			const moveToApply = new BlockMove(
-				undefined,
-				undefined,
-				blockMove.family,
-				blockMove.amount
-			)
+			let move: string
+			let moveToApply: BlockMove
+			if (this.mode === 'democracy') {
+				move = Object.keys(this.voteTally).reduce((a, b) =>
+					this.voteTally[a] > this.voteTally[b] ? a : b
+				)
+				const moveInfo = this.moves333(move)
+				moveToApply = new BlockMove(
+					undefined,
+					undefined,
+					moveInfo.family,
+					moveInfo.amount
+				)
+			} else {
+				move = this.votes.slice(-1)[0].move
+				const moveInfo = this.moves333(move)
+				moveToApply = new BlockMove(
+					undefined,
+					undefined,
+					moveInfo.family,
+					moveInfo.amount
+				)
+			}
 			// perform move
 			this.twisty.experimentalAddMove(moveToApply)
 			this.moves.push(moveToApply)
@@ -302,6 +320,8 @@ class TwistySolvesPuzzles {
 				this.newTwisty(e.puzzleId)
 				this.scramble.scrambleString = e.scramble
 				this.performScramble()
+				console.log(e.mode)
+				this.mode = e.mode || 'democracy'
 				this.changeState('VOTING')
 				return
 			case 'move':

@@ -1,8 +1,8 @@
 import WebSocket from 'ws'
 import tmi from 'tmi.js'
-import { moves333, puzzles, Puzzle } from './consts'
+import { puzzles, Puzzle } from './consts'
 import { Scrambow } from 'scrambow'
-import { twitchUsername, token, channel } from '../../config.js'
+import { twitchUsername, token, channel } from './config.js'
 
 class TwitchSolvesServer {
 	private scramble: string = ''
@@ -13,6 +13,7 @@ class TwitchSolvesServer {
 	private ws: null | WebSocket.Server = null
 	private socket: null | WebSocket = null
 	private puzzle: null | Puzzle = null
+	private mode: string = 'democracy'
 	constructor() {
 		this.scramble = new Scrambow().get(1)[0].scramble_string
 		this.client = new (tmi.client as any)({
@@ -96,7 +97,6 @@ class TwitchSolvesServer {
 		message: string,
 		self: boolean
 	) => {
-		console.log(tags.username === this.username)
 		if (
 			(self || tags.username === this.username) &&
 			this.socket !== null &&
@@ -107,10 +107,12 @@ class TwitchSolvesServer {
 			switch (command) {
 				case '!start':
 					const puzzle = puzzles.find((puzzle) => puzzle.id === args[0])
-					console.log(puzzle)
 					if (!puzzle) {
 						console.error('Invalid Scramble Type')
 					} else {
+						if (args[1]) {
+							this.mode = args[1]
+						}
 						this.puzzle = puzzle
 						this.scramble = new Scrambow()
 							.setType(puzzle.id)
@@ -120,6 +122,7 @@ class TwitchSolvesServer {
 								event: 'START',
 								scramble: this.scramble,
 								puzzleId: this.puzzle.name,
+								mode: this.mode,
 							})
 						)
 					}
@@ -145,7 +148,7 @@ class TwitchSolvesServer {
 					break
 			}
 		}
-		const moveInfo = moves333[message]
+		const moveInfo = this.puzzle?.moves.find((move) => move.value === message)
 		if (this.socket && moveInfo && this.state === 'VOTING') {
 			console.log(`VOTING FOR ${message}`)
 			const moveToPerform = JSON.stringify(

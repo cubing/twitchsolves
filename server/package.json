@@ -3,7 +3,6 @@
 	"private": true,
 	"description": "Twitch Solves Rubik's Cube",
 	"version": "0.0.1",
-	"type": "module",
 	"dependencies": {
 		"@types/tmi.js": "^1.4.0",
 		"@types/ws": "^7.2.4",
