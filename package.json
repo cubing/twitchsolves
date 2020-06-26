@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"description": "Twitch Solves Twisty Puzzles (client + server)",
 	"scripts": {
-		"client_build": "cd client && npm install && npm build",
+		"client_build": "cd client && npm install && npm run build",
 		"server_build": "cd server && npm start",
 		"postinstall": "npm install --prefix ./server"
 	},
