@@ -3,3 +3,6 @@ dist
 .cache
 .vscode
 config.js
+
+# Local Netlify folder
+.netlify

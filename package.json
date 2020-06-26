@@ -1,0 +1,28 @@
+{
+	"name": "twitchsolves",
+	"version": "0.0.1",
+	"description": "Twitch Solves Twisty Puzzles (client + server)",
+	"scripts": {
+		"client_build": "cd client && npm install && npm build",
+		"server_build": "cd server && npm start",
+		"postinstall": "npm install --prefix ./server"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/cubing/twitchsolves.git"
+	},
+	"keywords": [
+		"twitch",
+		"puzzles",
+		"cubing",
+		"twitchsolves",
+		"twitch",
+		"plays"
+	],
+	"author": "Saransh Grover <saransh.grover@stonybrook.edu> (https://saranshgrover.com)",
+	"license": "GPL-3.0-or-later",
+	"bugs": {
+		"url": "https://github.com/cubing/twitchsolves/issues"
+	},
+	"homepage": "https://github.com/cubing/twitchsolves#readme"
+}

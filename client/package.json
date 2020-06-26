@@ -40,7 +40,8 @@
 		"typescript": "^3.8.3"
 	},
 	"scripts": {
-		"dev": "parcel serve --no-autoinstall index.html --open --out-dir dist/parcel"
+		"dev": "parcel serve --no-autoinstall index.html --open --out-dir dist/parcel",
+		"build": "parcel build index.html --public-url ./"
 	},
 	"browserslist": [
 		"> 5%"
