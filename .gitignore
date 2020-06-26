@@ -2,7 +2,11 @@ node_modules
 dist
 .cache
 .vscode
-config.js
+server/config.json
+build
 
 # Local Netlify folder
 .netlify
+
+# release files
+exe

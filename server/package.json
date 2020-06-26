@@ -3,6 +3,7 @@
 	"private": true,
 	"description": "Twitch Solves Rubik's Cube",
 	"version": "0.0.1",
+	"bin": "build/server.js",
 	"dependencies": {
 		"@types/tmi.js": "^1.4.0",
 		"@types/ws": "^7.2.4",
@@ -12,7 +13,8 @@
 	},
 	"scripts": {
 		"start": "nodemon",
-		"lint": "prettier --write *.js"
+		"lint": "prettier --write *.js",
+		"build": "tsc --project ./tsconfig.json"
 	},
 	"repository": {
 		"type": "git",
@@ -24,5 +26,8 @@
 		"prettier": "2.0.5",
 		"ts-node": "^8.10.1",
 		"typescript": "^3.9.3"
+	},
+	"pkg": {
+		"assests": "build/config.json"
 	}
 }

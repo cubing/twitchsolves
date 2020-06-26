@@ -2,29 +2,17 @@
 
 Twitch Solves Twisty Puzzles
 
-## How to run
+## Usage
 
-Note: You need to add your own config.js file, exporting the following:
+Twitch Solves is has 2 components, a client and a server. The client is available online [here](twitchsolves.netlify.app) and the server is available as a executable [here](https://github.com/cubing/twitchsolves/releases)
 
-```js
+To use the server, you'll need to specify certain configurations in `config.json`
 
-module.exports = {
-twitchUsername // Username of the Bot/Account which will control the commands,
-token // Oauth Token for the account, which can be generated from here: https://id.twitch.tv/oauth2/authorize,
-channel // Username of the Twitch Channel you want twitch solves to work on. Multiple channels are currently not supported, though there are plans for that,
-}
+- twitchUsername: Username of the Bot/Account which will control the commands
+- token: Oauth Token for the account, which can be generated from here: <https://id.twitch.tv/oauth2/authorize>
+- channel: Username of the Twitch Channel you want twitch solves to work on
 
-```
-
-### Run the server
-
-`js cd server && npm install && npm start`
-
-### Run cubing.js
-
-`js cd client && npm install && npm run dev`
-
-Navigate to <https://localhost:1234/?socketOrigin=ws:localhost:8080> You can also mention the voteInterval and cooldownInterval via the URL as a param
+Now you can run the executable file and then navigate to <https://twitchsolves.netlify.app/?socketOrigin=ws:localhost:8080> and begin using the application.
 
 ## Twitch Usage
 
@@ -36,3 +24,17 @@ The following commands are available via the Twitch Chat
 - !stop: Disconnect from server
 - !reset: Reset the session. Requires calling !start to start a new session
 - !pause: Pause the session
+
+## Development
+
+Note: You need to add your own `config.json` inside `server/` file
+
+### Run the server
+
+`cd server && npm install && npm start`
+
+### Run cubing.js
+
+`cd client && npm install && npm run dev`
+
+Navigate to <https://localhost:1234/?socketOrigin=ws:localhost:8080> You can also mention the voteInterval and cooldownInterval via the URL as a param

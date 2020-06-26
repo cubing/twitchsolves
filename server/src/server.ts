@@ -2,26 +2,41 @@ import WebSocket from 'ws'
 import tmi from 'tmi.js'
 import { puzzles, Puzzle } from './consts'
 import { Scrambow } from 'scrambow'
-import { twitchUsername, token, channel } from './config.js'
+import { readFileSync } from 'fs'
 
 class TwitchSolvesServer {
 	private scramble: string = ''
 	state: string = 'none' // TODO: Change this to oneof later
-	private username: string = twitchUsername
-	private token: string = token
 	private client: null | tmi.Client = null
 	private ws: null | WebSocket.Server = null
 	private socket: null | WebSocket = null
 	private puzzle: null | Puzzle = null
 	private mode: string = 'democracy'
+	private username: string = ''
+	private token: string = ''
+	private channel: string = ''
 	constructor() {
+		try {
+			// we use a relative path since config.json is custom to each user
+			const file = readFileSync('./config.json', 'utf-8')
+			const { twitchUsername, token, channel } = JSON.parse(file)
+			if (!twitchUsername || !token || !channel) {
+				throw new Error('Config values not specified')
+			}
+			this.username = twitchUsername
+			this.channel = channel
+			this.token = token
+		} catch (err) {
+			console.log(err)
+			process.exitCode = 1
+		}
 		this.scramble = new Scrambow().get(1)[0].scramble_string
 		this.client = new (tmi.client as any)({
 			connection: {
 				secure: true,
 				reconnect: true,
 			},
-			channels: [channel],
+			channels: [this.channel],
 			identity: {
 				username: this.username,
 				password: this.token,
@@ -67,7 +82,7 @@ class TwitchSolvesServer {
 			this.handleMessage = this.handleMessage.bind(this)
 			this.move = this.move.bind(this)
 			this.client.connect()
-			console.log(`Connecting to /${channel}..`)
+			console.log(`Connecting to /${this.channel}..`)
 		}
 	}
 	move = (
