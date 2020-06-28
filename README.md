@@ -4,7 +4,7 @@ Twitch Solves Twisty Puzzles
 
 ## Usage
 
-Twitch Solves is has 2 components, a client and a server. The client is available online [here](twitchsolves.netlify.app) and the server is available as a executable [here](https://github.com/cubing/twitchsolves/releases)
+Twitch Solves has 2 components, a client and a server. The client is available online [here](twitchsolves.netlify.app) and the server is available as a executable [here](https://github.com/cubing/twitchsolves/releases).
 
 To use the server, you'll need to specify certain configurations in `config.json`
 
