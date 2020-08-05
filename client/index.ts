@@ -4,11 +4,15 @@ import {
 	WebSocketProxyReceiver,
 	WebSocketProxySender,
 } from 'cubing/stream'
-import { Puzzles } from 'cubing/kpuzzle'
+import { Puzzles, parse as kpuzzleParse } from 'cubing/kpuzzle'
 import { BlockMove, Sequence } from 'cubing/alg'
-import { MoveEvent } from 'cubing/dist/esm/src/bluetooth'
+import { MoveEvent } from 'cubing/bluetooth'
+import { getPuzzleGeometryByName } from 'cubing/puzzle-geometry'
 
 class TwitchSolverProxySender extends WebSocketProxySender {
+	onopen() {
+		document.getElementById('no-server').hidden = true
+	}
 	sendStateEvent(newState: string): void {
 		this.websocket.send(
 			JSON.stringify({ event: 'state', data: { newState: newState } })
@@ -20,7 +24,9 @@ class CallbackProxyReceiver extends WebSocketProxyReceiver {
 	constructor(url: string, private callback: (e: MoveEvent) => void) {
 		super(url)
 	}
-
+	onopen() {
+		document.getElementById('no-server').hidden = true
+	}
 	onProxyEvent(e: MoveEvent): void {
 		this.callback(e)
 	}
@@ -84,41 +90,41 @@ class TwistySolvesPuzzles {
 				return { family: 'B', amount: -1 }
 			case 'B2':
 				return { family: 'B', amount: 2 }
-			case 'u':
-				return { family: 'u', amount: 1 }
-			case "u'":
-				return { family: 'u', amount: -1 }
-			case 'u2':
-				return { family: 'u', amount: 2 }
-			case 'd':
-				return { family: 'd', amount: 1 }
-			case "d'":
-				return { family: 'd', amount: -1 }
-			case 'd2':
-				return { family: 'd', amount: 2 }
-			case 'f':
-				return { family: 'f', amount: 1 }
-			case "f'":
-				return { family: 'f', amount: -1 }
-			case 'f2':
-				return { family: 'f', amount: 2 }
-			case 'b':
-				return { family: 'b', amount: 1 }
-			case "b'":
-				return { family: 'b', amount: -1 }
-			case 'b2':
-				return { family: 'b', amount: 2 }
-			case 'r':
+			case 'Uw':
 				return { family: 'r', amount: 1 }
-			case "r'":
+			case "Uw'":
+				return { family: 'u', amount: -1 }
+			case 'Uw2':
+				return { family: 'u', amount: 2 }
+			case 'Dw':
+				return { family: 'd', amount: 1 }
+			case "Dw'":
+				return { family: 'd', amount: -1 }
+			case 'Dw2':
+				return { family: 'd', amount: 2 }
+			case 'Fw':
+				return { family: 'f', amount: 1 }
+			case "Fw'":
+				return { family: 'f', amount: -1 }
+			case 'Fw':
+				return { family: 'f', amount: 2 }
+			case 'Bw':
+				return { family: 'b', amount: 1 }
+			case "Bw'":
+				return { family: 'b', amount: -1 }
+			case 'Bw2':
+				return { family: 'b', amount: 2 }
+			case 'Rw':
+				return { family: 'r', amount: 1 }
+			case "Rw'":
 				return { family: 'r', amount: -1 }
-			case 'r2':
+			case 'Rw':
 				return { family: 'r', amount: 2 }
-			case 'l':
+			case 'Lw':
 				return { family: 'l', amount: 1 }
-			case "l'":
+			case "Lw'":
 				return { family: 'l', amount: -1 }
-			case 'l2':
+			case 'Lw2':
 				return { family: 'l', amount: 2 }
 			case 'y':
 				return { family: 'y', amount: 1 }
@@ -163,6 +169,11 @@ class TwistySolvesPuzzles {
 	public mode: string = 'democracy'
 
 	constructor() {
+		this.handleReset()
+		this.newTwisty('333')
+		this.changeState = this.changeState.bind(this)
+		this.startCountDown = this.startCountDown.bind(this)
+		try {
 		this.proxySender = new TwitchSolverProxySender(
 			this.proxyURL('/register-sender')
 		)
@@ -170,9 +181,12 @@ class TwistySolvesPuzzles {
 			this.proxyURL('/register-receiver'),
 			this.onMove.bind(this)
 		)
-		this.handleReset()
-		this.changeState = this.changeState.bind(this)
-		this.startCountDown = this.startCountDown.bind(this)
+		}
+		catch(err) {
+			const doc = document.getElementById('no-server')
+			doc.innerHTML = `No server/socket detected. Please install and run the <a href="https://github.com/cubing/twitchsolves/releases">server`
+			doc.classList.add('error')
+		}
 	}
 
 	public changeState = (newState: string) => {
@@ -214,20 +228,44 @@ class TwistySolvesPuzzles {
 		url.pathname = pathname
 		return url.toString()
 	}
-
 	private newTwisty = (puzzle: string) => {
 		console.log(puzzle)
-		this.twisty = new Twisty(document.querySelector('#target-twisty')!, {
-			alg: new Sequence([]),
-			puzzle: Puzzles[puzzle],
-			playerConfig: {
-				visualizationFormat: '3D',
-				experimentalShowControls: false,
-				experimentalCube3DViewConfig: {
-					experimentalShowBackView: true,
+		if (this.twisty) {
+			var div = document.getElementById('target-twisty')
+			while (div.firstChild) {
+				div.removeChild(div.firstChild)
+			}
+		}
+		if (puzzle === '4x4x4') {
+			const pg = getPuzzleGeometryByName(puzzle, ['orientcenters', 'true'])
+			const stickerDat = pg.get3d(0.0131)
+			console.log(pg.writeksolve('TwizzlePuzzle', true))
+			const kpuzzle = kpuzzleParse(pg.writeksolve('TwizzlePuzzle', true))
+
+			this.twisty = new Twisty(document.querySelector('#target-twisty')!, {
+				alg: new Sequence([]),
+				puzzle: kpuzzle,
+				playerConfig: {
+					visualizationFormat: 'PG3D',
+					experimentalPG3DViewConfig: {
+						stickerDat,
+						showFoundation: true,
+					},
 				},
-			},
-		})
+			})
+		} else {
+			this.twisty = new Twisty(document.querySelector('#target-twisty')!, {
+				alg: new Sequence([]),
+				puzzle: Puzzles[puzzle],
+				playerConfig: {
+					visualizationFormat: '3D',
+					experimentalShowControls: false,
+					experimentalCube3DViewConfig: {
+						experimentalShowBackView: true,
+					},
+				},
+			})
+		}
 	}
 
 	private performMove = () => {
@@ -274,6 +312,10 @@ class TwistySolvesPuzzles {
 			li.innerHTML = `<b>${move}</b> was just applied to the puzzle!`
 			const messageList = document.getElementById('message-box-list')
 			messageList?.appendChild(li)
+			// append to reconstruction
+			const recon = document.getElementById('reconstruction')!
+			recon.innerHTML = recon.innerHTML + ` ${move}`
+			// clear stuff
 			this.voteTally = {}
 			this.votes = []
 		}
@@ -285,7 +327,13 @@ class TwistySolvesPuzzles {
 		for (let i = 0; i < elements.length; i++) {
 			elements.item(i)?.remove()
 		}
+		const recon = document.getElementById('reconstruction')!
+		recon.innerHTML = ''
+		this.voteTally = {}
+		this.votes = []
+		document.getElementById('total-moves')!.innerText = ''
 	}
+
 	private startCountDown(i: number, p: number, f: (state: string) => void) {
 		// I really don't know how to do typscript types for this
 		var pause = p

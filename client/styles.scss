@@ -36,6 +36,7 @@ twisty player {
 }
 #footer {
 	font-size: 1rem;
+	position: 'absolute';
 }
 .container {
 	width: 78vw;
@@ -75,6 +76,9 @@ body {
 }
 
 #logos {
+	position: fixed;
+	right: 0;
+	bottom: 1rem;
 	img {
 		float: right;
 	}
@@ -90,7 +94,14 @@ body {
 	position: fixed;
 	right: 0;
 	top: 0;
-	z-index: -1;
+}
+
+.error { 
+	color: #ff0033;
+}
+
+.hidden {
+	visibility: hidden;
 }
 
 #message-box {
