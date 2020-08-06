@@ -4,7 +4,7 @@ import {
 	WebSocketProxyReceiver,
 	WebSocketProxySender,
 } from 'cubing/stream'
-import { Puzzles, parse as kpuzzleParse } from 'cubing/kpuzzle'
+import { Puzzles, parse as kpuzzleParse, KPuzzle } from 'cubing/kpuzzle'
 import { BlockMove, Sequence } from 'cubing/alg'
 import { MoveEvent } from 'cubing/bluetooth'
 import { getPuzzleGeometryByName } from 'cubing/puzzle-geometry'
@@ -241,6 +241,17 @@ class TwistySolvesPuzzles {
 			const stickerDat = pg.get3d(0.0131)
 			console.log(pg.writeksolve('TwizzlePuzzle', true))
 			const kpuzzle = kpuzzleParse(pg.writeksolve('TwizzlePuzzle', true))
+
+			// Wide move / rotation hack
+			const worker = new KPuzzle(kpuzzle);
+			worker.setFaceNames(pg.facenames.map((_: any) => _[1]));
+			const mps = pg.movesetgeos;
+			for (const mp of mps) {
+				const grip1 = mp[0] as string;
+				const grip2 = mp[2] as string;
+				// angle compatibility hack
+				worker.addGrip(grip1, grip2, mp[4] as number);
+			}
 
 			this.twisty = new Twisty(document.querySelector('#target-twisty')!, {
 				alg: new Sequence([]),
