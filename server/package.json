@@ -9,7 +9,7 @@
 		"@types/ws": "^7.2.4",
 		"scrambow": "^1.4.0",
 		"tmi.js": "1.5.0",
-		"ws": "^7.2.5"
+		"ws": "^7.4.6"
 	},
 	"scripts": {
 		"start": "nodemon",
